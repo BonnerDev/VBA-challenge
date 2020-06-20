@@ -1,0 +1,67 @@
+Sub VBAHomework()
+
+Dim ws As Worksheet
+Dim Ticker As String
+Dim open_stock As Double
+Dim close_stock As Double
+Dim Percent_Change As Double
+Dim Yearly_Change As Double
+Dim Total_Stock_Volume As Double
+
+Dim Summary_Table As Integer
+
+For Each ws In Worksheets
+Total_Stock_Volume = 0
+    Summary_Table = 2
+    'this shows table row as row 2
+    
+       lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+       ws.Cells(1, 8).Value = "Ticker"
+       ws.Cells(1, 9).Value = "Yearly_Change"
+       ws.Cells(1, 10).Value = "Percent_Change"
+       ws.Cells(1, 11).Value = "Total_Stock_Volume"
+       
+        For i = 2 To lastrow
+                'read in the total stock volume and define
+                Total_Stock_Volume = Total_Stock_Volume + ws.Cells(i, 7).Value
+                
+                'check if cells have same ticker symbol for opening price and define column to pull data from
+            If ws.Cells(i - 1, 1).Value <> ws.Cells(i, 1).Value Then
+                Ticker = ws.Cells(i, 1).Value
+                open_stock = ws.Cells(i, 3).Value
+                'then we check if cells have same ticker symbol for closing price and output data to column H for ticker and I for yearly change
+            ElseIf ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                close_stock = ws.Cells(i, 6).Value
+                'we need to change ticker back to being a string otherwise it will try and read as integer as defined in summary table
+                ws.Range("H" & Summary_Table).Value = CStr(Ticker)
+                ws.Range("I" & Summary_Table).Value = close_stock - open_stock
+                
+                'N/A if there is no open stock, to the percent change column
+                If open_stock = 0 Then
+                    ws.Range("J" & Summary_Table).Value = "N/A"
+                'output percentage change, we need to set the cell so it reads as a percentage value then we need to calculate the percentage change and output to J
+                Else
+                    ws.Range("J" & Summary_Table).NumberFormat = "00.00%"
+                    ws.Range("J" & Summary_Table).Value = ((close_stock - open_stock) / open_stock)
+                End If
+                'we need to identify where to output the data for total stock volume and into column K
+                    ws.Range("K" & Summary_Table).Value = Total_Stock_Volume
+                
+                'conditional format the colour into the cells only for percentage change
+                If ws.Range("J" & Summary_Table).Value > 0 Then
+                    ws.Range("J" & Summary_Table).Interior.ColorIndex = 4
+                ElseIf ws.Range("J" & Summary_Table).Value < 0 Then
+                    ws.Range("J" & Summary_Table).Interior.ColorIndex = 3
+                End If
+                
+                'reset the column data input where there is integers
+                open_stock = 0
+                close_stock = 0
+                Total_Stock_Volume = 0
+                
+                'now we add 1 to summary table row otherwise all of the data just goes in the one cell and row 2
+                 Summary_Table = Summary_Table + 1
+            End If
+        Next i
+    Next ws
+    End Sub
